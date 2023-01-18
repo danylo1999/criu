@@ -79,21 +79,33 @@ enum NETWORK_LOCK_METHOD {
 #define DEFAULT_TIMEOUT 10
 
 enum FILE_VALIDATION_OPTIONS {
-	/*
-	 * This constant indicates that the file validation should be tried with the
-	 * file size method by default.
-	 */
+	/* Only with file size */
 	FILE_VALIDATION_FILE_SIZE,
 
-	/*
-	 * This constant indicates that the file validation should be tried with the
-	 * build-ID method by default.
-	 */
-	FILE_VALIDATION_BUILD_ID
+	/* Build-ID method by default */
+	FILE_VALIDATION_BUILD_ID,
+
+	/* CRC32C checksum method by default */
+	FILE_VALIDATION_CHKSM,
+
+	/* Checksum the entire file */
+	FILE_VALIDATION_CHKSM_FULL,
+
+	/* Checksum the first N (Checksum parameter) bytes of the file */
+	FILE_VALIDATION_CHKSM_FIRST,
+
+	/* Checksum method using every Nth (Checksum parameter) bytes of the file */
+	FILE_VALIDATION_CHKSM_PERIOD
 };
 
-/* This constant dictates which file validation method should be tried by default. */
+/* Default file validation method to be tried */
 #define FILE_VALIDATION_DEFAULT FILE_VALIDATION_BUILD_ID
+
+/* Default configuration of bytes for the checksum method */
+#define FILE_VALIDATION_CHKSM_CONFIG_DEFAULT	FILE_VALIDATION_CHKSM_FIRST
+
+/* Default value for checksum parameter */
+#define FILE_VALIDATION_CHKSM_PARAM_DEFAULT	1024
 
 /* This constant dictates that criu use fiemap to copy ghost file by default.*/
 #define FIEMAP_DEFAULT 1
@@ -209,8 +221,9 @@ struct cr_options {
 	int tls;
 	int tls_no_cn_verify;
 
-	/* This stores which method to use for file validation. */
-	int file_validation_method;
+	int			file_validation_method;
+	int			file_validation_chksm_config;
+	int			file_validation_chksm_parameter;
 
 	/* Shows the mode criu is running at the moment: dump/pre-dump/restore/... */
 	enum criu_mode mode;

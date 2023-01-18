@@ -421,7 +421,7 @@ By default the option is set to *fpu* and *ins*.
     option is intended for post-copy (lazy) migration and should be
     used in conjunction with *restore* with appropriate options.
 
-*--file-validation* ['mode']::
+*--file-validation* 'method'::
     Set the method to be used to validate open files. Validation is done
     to ensure that the version of the file being restored is the same
     version when it was dumped.
@@ -434,8 +434,27 @@ The 'mode' may be one of the following:
 
     *buildid*:::
                 To validate ELF files with their build-ID. If the
-                build-ID cannot be obtained, 'chksm-first' method will be
+                build-ID cannot be obtained, 'checksum-first' method will be
                 used. This is the default if mode is unspecified.
+
+    *checksum*:::
+                To calculate and use the CRC32C checksum on the first 'N'
+                bytes of the file for validation. 'N' is the
+                'checksum-parameter'.
+
+    *checksum-full:::
+                To calculate and use the CRC32C checksum of the entire file
+                for validation.
+
+    *checksum-period*:::
+                To calculate and use the CRC32C checksum on every Nth byte of
+                the file (Including the first byte of the file) for validation.
+                'N' is the 'checksum-parameter'.
+
+*--checksum-parameter* 'num'::
+    Set the parameter required for certain checksum validation methods.
+    Argument 'size' must be a number greater than zero. The default
+    value is 1024 if the checksum parameter is unspecified.
 
 *--network-lock* ['mode']::
     Set the method to be used for network locking/unlocking. Locking is done
@@ -443,7 +462,7 @@ The 'mode' may be one of the following:
     done to avoid the kernel sending RST when a packet arrives destined for
     the dumped process.
 +
-The 'mode' may be one of the following:
+The 'method' may be one of the following:
 
     *iptables*::: Use iptables rules to drop the packets.
     This is the default if 'mode' is not specified.
@@ -658,12 +677,12 @@ are not adequate, but this can be suppressed by using *--cpu-cap=none*.
    restored process.
    This option requires running *lazy-pages* daemon.
 
-*--file-validation* ['mode']::
+*--file-validation* 'method'::
     Set the method to be used to validate open files. Validation is done
     to ensure that the version of the file being restored is the same
     version when it was dumped.
 +
-The 'mode' may be one of the following:
+The 'method' may be one of the following:
 
     *filesize*:::
                 To explicitly use only the file size check all the time.
@@ -671,8 +690,27 @@ The 'mode' may be one of the following:
 
     *buildid*:::
                 To validate ELF files with their build-ID. If the
-                build-ID cannot be obtained, 'chksm-first' method will be
+                build-ID cannot be obtained, 'checksum-first' method will be
                 used. This is the default if mode is unspecified.
+
+    *checksum*:::
+                To calculate and use the CRC32C checksum on the first 'N'
+                bytes of the file for validation. 'N' is the
+                'checksum-parameter'.
+
+    *checksum-full:::
+                To calculate and use the CRC32C checksum of the entire file
+                for validation.
+
+    *checksum-period*:::
+                To calculate and use the CRC32C checksum on every Nth byte of
+                the file (Including the first byte of the file) for validation.
+                'N' is the 'checksum-parameter'.
+
+*--checksum-parameter* 'num'::
+    Set the parameter required for certain checksum validation methods.
+    Argument 'size' must be a number greater than zero. The default
+    value is 1024 if the checksum parameter is unspecified.
 
 *--skip-file-rwx-check*::
     Skip checking file permissions (r/w/x for u/g/o) on restore.

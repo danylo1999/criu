@@ -429,6 +429,8 @@ void init_opts(void)
 	opts.log_level = DEFAULT_LOGLEVEL;
 	opts.pre_dump_mode = PRE_DUMP_SPLICE;
 	opts.file_validation_method = FILE_VALIDATION_DEFAULT;
+	opts.file_validation_chksm_config = FILE_VALIDATION_CHKSM_CONFIG_DEFAULT;
+	opts.file_validation_chksm_parameter = FILE_VALIDATION_CHKSM_PARAM_DEFAULT;
 	opts.network_lock_method = NETWORK_LOCK_DEFAULT;
 	opts.ghost_fiemap = FIEMAP_DEFAULT;
 }
@@ -578,11 +580,20 @@ static int parse_join_ns(const char *ptr)
 
 static int parse_file_validation_method(struct cr_options *opts, const char *optarg)
 {
-	if (!strcmp(optarg, "filesize"))
+	if (!strcmp(optarg, "filesize")) {
 		opts->file_validation_method = FILE_VALIDATION_FILE_SIZE;
-	else if (!strcmp(optarg, "buildid"))
+	} else if (!strcmp(optarg, "buildid")) {
 		opts->file_validation_method = FILE_VALIDATION_BUILD_ID;
-	else
+	} else if (!strcmp(optarg, "checksum")) {
+		opts->file_validation_method = FILE_VALIDATION_CHKSM;
+		opts->file_validation_chksm_config = FILE_VALIDATION_CHKSM_FIRST;
+	} else if (!strcmp(optarg, "checksum-full")) {
+		opts->file_validation_method = FILE_VALIDATION_CHKSM;
+		opts->file_validation_chksm_config = FILE_VALIDATION_CHKSM_FULL;
+	} else if (!strcmp(optarg, "checksum-period")) {
+		opts->file_validation_method = FILE_VALIDATION_CHKSM;
+		opts->file_validation_chksm_config = FILE_VALIDATION_CHKSM_PERIOD;
+	} else
 		goto Esyntax;
 
 	return 0;
@@ -700,6 +711,7 @@ int parse_options(int argc, char **argv, bool *usage_error, bool *has_exec_cmd, 
 		BOOL_OPT("skip-file-rwx-check", &opts.skip_file_rwx_check),
 		{ "lsm-mount-context", required_argument, 0, 1099 },
 		{ "network-lock", required_argument, 0, 1100 },
+		{ "checksum-parameter", required_argument, 0, 1101 },
 		BOOL_OPT("mntns-compat-mode", &opts.mntns_compat_mode),
 		BOOL_OPT("unprivileged", &opts.unprivileged),
 		BOOL_OPT("ghost-fiemap", &opts.ghost_fiemap),
@@ -1040,6 +1052,11 @@ int parse_options(int argc, char **argv, bool *usage_error, bool *has_exec_cmd, 
 				pr_err("Invalid value for --network-lock: %s\n", optarg);
 				return 1;
 			}
+			break;
+		case 1101:
+			opts.file_validation_chksm_parameter = atoi(optarg);
+			if (opts.file_validation_chksm_parameter <= 0)
+				return 2;
 			break;
 		case 'V':
 			pr_msg("Version: %s\n", CRIU_VERSION);
