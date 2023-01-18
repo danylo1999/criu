@@ -616,6 +616,9 @@ class zdtm_test:
     def blocking(self):
         return test_flag(self.__desc, 'crfail')
 
+    def blocking_restore(self):
+        return test_flag(self.__desc, 'crfail-restore')
+
     @staticmethod
     def available():
         if not os.access("umount2", os.X_OK):
@@ -803,6 +806,9 @@ class inhfd_test:
         return True
 
     def blocking(self):
+        return False
+
+    def blocking_restore(self):
         return False
 
     @staticmethod
@@ -1233,8 +1239,9 @@ class criu:
                     return
             rst_succeeded = os.access(
                 os.path.join(__ddir, "restore-succeeded"), os.F_OK)
-            if self.__test.blocking() or (self.__sat and action == 'restore' and
-                                          rst_succeeded):
+            if self.__test.blocking() or \
+                    (self.__sat and action == 'restore' and rst_succeeded) or \
+                    (self.__test.blocking_restore() and action == 'restore'):
                 raise test_fail_expected_exc(action)
             else:
                 raise test_fail_exc("CRIU %s" % action)
@@ -1933,6 +1940,10 @@ def do_run_test(tname, tdesc, flavs, opts):
             except test_fail_expected_exc as e:
                 if e.cr_action == "dump":
                     t.stop()
+                elif e.cr_action == "restore":
+                    t.kill()
+                    cr_api.fini()
+                    try_run_hook(t, ["--clean"])
             else:
                 check_visible_state(t, s, opts)
                 if opts['join_ns']:
@@ -1940,7 +1951,7 @@ def do_run_test(tname, tdesc, flavs, opts):
                 t.stop()
                 cr_api.fini()
                 try_run_hook(t, ["--clean"])
-                if t.blocking():
+                if t.blocking() or t.blocking_restore():
                     raise test_fail_exc("unexpected success")
         except test_fail_exc as e:
             print_sep("Test %s FAIL at %s" % (tname, e.step), '#')
